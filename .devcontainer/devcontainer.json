@@ -16,7 +16,14 @@
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
     "dbaeumer.vscode-eslint",
-    "esbenp.prettier-vscode"
+    "esbenp.prettier-vscode",
+    "editorconfig.editorconf",
+    "eamodio.gitlens",
+    "nhoizey.gremlins",
+    "christian-kohler.path-intellisense",
+    "visualstudioexptteam.vscodeintellicode",
+    "redhat.vscode-yaml",
+    "humao.rest-client"
   ],
   "mounts": [
     "source=irene-kills-node_modules,target=${containerWorkspaceFolder}/node_modules,type=volume",
