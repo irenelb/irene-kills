@@ -11,11 +11,11 @@ describe('Irene Kills', function () {
         need: async () => {
           return { text: 'hello' };
         },
-        start: async (name, resource, args) => {
-          return { kill: false };
-        },
-        validator: async (resource) => {
+        check: async (resource) => {
           return resource.text && resource.text.length > 0 ? true : false;
+        },
+        start: async ({ name, resource, args }) => {
+          return { kill: false };
         },
         on: {
           health: async ({ resource }) => {
@@ -36,6 +36,8 @@ describe('Irene Kills', function () {
           //},
         },
       });
+
+      await irene.wakeUp(); // Untill all resources are ready and checked
       //expect(irene.resource('hello')).toBe('hello');
     });
   });

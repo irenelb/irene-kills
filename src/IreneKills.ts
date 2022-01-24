@@ -1,3 +1,4 @@
+import { runMain } from 'module';
 import { FSAManager } from './FSAManager';
 import { IreneKillsConstructorArgs } from './types';
 
@@ -21,12 +22,12 @@ type HealedReply =
 
 interface IreneResource<R> {
   need: (name: string) => R | Promise<R>;
-  start: (
-    name: string,
-    resource: R,
-    args: IreneReload,
-  ) => IreneKill | IreneHealthy | Promise<IreneKill | IreneHealthy>;
-  validator: (resource: R, name: string) => boolean | Promise<boolean>;
+  start: (params: {
+    name: string;
+    resource: R;
+    args: IreneReload;
+  }) => IreneKill | IreneHealthy | Promise<IreneKill | IreneHealthy>;
+  check: (resource: R, name: string) => boolean | Promise<boolean>;
   on: {
     health: (
       params: {
@@ -58,10 +59,42 @@ interface IreneResource<R> {
 
 export class IreneKills {
   private resources: Record<string, IreneResource<any>> = {};
+  private fsm = new FSAManager({
+    initialState: 'initial',
+    states: {
+      initial: {
+        execute: async () => {
+          /* do stuff */
+        },
+        active: async () => {
+          /*do stuff*/
+        },
+        leaving: async () => {
+          /*do stuff*/
+        },
+      },
+      check: {},
+      started: {},
+      sick: {},
+      Irene: {},
+    },
+    transitions: {
+      wakeup: [{ current: 'initial', success: 'check', failure: 'Irene' }],
+      refresh: [{ current: 'started', success: 'initial', failure: 'Irene' }],
+      health: [
+        { current: 'started', success: 'started', failure: 'sick' },
+        { current: 'sick', success: 'sick', failure: 'Irene' },
+      ],
+      stop: [
+        { current: 'started', success: 'Irene', failure: 'Irene' },
+        { current: 'sick', success: 'Irene', failure: 'Irene' },
+      ],
+    },
+  });
 
-  resource<V, H extends IreneHealthy>(
+  resource<R, H extends IreneHealthy>(
     name: string,
-    resConfig: IreneResource<V>,
+    resConfig: IreneResource<R>,
     //telemetry?: {
     //  state: T;
     //  probe: (msg: I[N], oldReport: T) => Promise<T>;
@@ -72,5 +105,12 @@ export class IreneKills {
       return;
     }
     this.resources[name] = resConfig;
+  }
+
+  async wakeUp(): Promise<void> {
+    return await this.fsm.signal('wakeup');
+  }
+  async healtcheck(): Promise<void> {
+    return await this.fsm.signal('health', this.resources);
   }
 }
