@@ -1,3 +1,4 @@
+![Image](logo.png?raw=true)
 # node-typescript-boilerplate
 
 [![Sponsor][sponsor-badge]][sponsor]
