@@ -1,10 +1,15 @@
 {
   "name": "@iad-os/irene-kills",
-  "version": "0.0.1-alpha5",
+  "version": "0.0.1-alpha6",
   "description": "Yes ... only if necessary, but ... Irene Kills!",
   "engines": {
     "node": ">= 16.13 <17"
   },
+  "main": "build/src/IreneKills.js",
+  "types": "build/types/IreneKills.d.ts",
+  "files": [
+    "build/**"
+  ],
   "devDependencies": {
     "@types/jest": "~27.4.0",
     "@types/lodash": "^4.14.178",
@@ -33,9 +38,6 @@
   },
   "author": "Daniele Fiungo <daniele.fiungo@iad2.it>",
   "license": "Apache-2.0",
-  "files": [
-    "build/src/**"
-  ],
   "dependencies": {
     "lodash": "^4.17.21",
     "tslib": "~2.3.1"

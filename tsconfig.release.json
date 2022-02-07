@@ -3,6 +3,9 @@
   "compilerOptions": {
     "rootDir": ".",
     "outDir": "build",
+    "declaration": true,
+    "declarationDir": "build/types",
+    "declarationMap": true ,
     "removeComments": true
   },
   "include": [
