@@ -1,5 +1,8 @@
-![Image](logo.png?raw=true)
-# node-typescript-boilerplate
+# Irene Kills
+
+<div align="center">
+<img width="400" height="400" src="logo.png" alt="Irene Kills">
+</div>
 
 [![Sponsor][sponsor-badge]][sponsor]
 [![TypeScript version][ts-badge]][typescript-4-5]

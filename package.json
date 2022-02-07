@@ -1,12 +1,13 @@
 {
-  "name": "node-typescript-boilerplate",
-  "version": "0.0.0",
-  "description": "Minimalistic boilerplate to quick-start Node.js development in TypeScript.",
+  "name": "@iad-os/irene-kills",
+  "version": "0.0.1",
+  "description": "Yes ... only if necessary, but ... Irene Kills!",
   "engines": {
     "node": ">= 16.13 <17"
   },
   "devDependencies": {
     "@types/jest": "~27.0.2",
+    "@types/lodash": "^4.14.178",
     "@types/node": "~16.11.6",
     "@typescript-eslint/eslint-plugin": "~5.7.0",
     "@typescript-eslint/parser": "~5.7.0",
@@ -30,9 +31,10 @@
     "test": "jest --coverage",
     "test:watch": "jest --watch"
   },
-  "author": "Jakub Synowiec <jsynowiec@users.noreply.github.com>",
+  "author": "Daniele Fiungo <daniele.fiungo@iad2.it>",
   "license": "Apache-2.0",
   "dependencies": {
+    "lodash": "^4.17.21",
     "tslib": "~2.3.1"
   },
   "volta": {
