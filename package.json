@@ -1,11 +1,11 @@
 {
   "name": "@iad-os/irene-kills",
-  "version": "0.0.1-alpha6",
+  "version": "0.0.1-alpha7",
   "description": "Yes ... only if necessary, but ... Irene Kills!",
   "engines": {
     "node": ">= 16.13 <17"
   },
-  "main": "build/src/IreneKills.js",
+  "main": "build/lib/IreneKills.js",
   "types": "build/types/IreneKills.d.ts",
   "files": [
     "build/**"
