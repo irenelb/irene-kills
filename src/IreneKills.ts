@@ -343,7 +343,10 @@ export class IreneKills {
     errors: Record<string, any>;
   }> {
     return timeout(opt?.timeout ?? null, async () => {
-      await this.fsm.awaitState('healthy');
+      await Promise.race([
+        this.fsm.awaitState('healthy'),
+        this.fsm.awaitState('sick'),
+      ]);
 
       const healthcheck = await Promise.all(
         _(this.resources)
