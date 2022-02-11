@@ -763,6 +763,74 @@ describe('Irene Kills', function () {
       expect(irene.mood()).toBe('sick');
       expect(checkCallFn).toHaveBeenCalled();
     });
+    it('First sick and then healty', async () => {
+      const test = { status: 1 };
+
+      const checkHealthy = jest.fn();
+      const checkSick = jest.fn();
+      const healthcheck = jest.fn();
+      const irene = new IreneKills();
+      irene.resource('jest1', {
+        healthy: async () => {
+          checkHealthy();
+          return { healthy: true, kill: false };
+        },
+        sick: async () => {
+          checkSick();
+          return { kill: false };
+        },
+        on: {
+          healthcheck: async () => {
+            healthcheck();
+            return test.status
+              ? { healthy: false, kill: false }
+              : { healthy: true };
+          },
+        },
+      });
+      await irene.wakeUp();
+      expect(checkHealthy).toHaveBeenCalled();
+      await irene.healthcheck();
+      expect(checkSick).toHaveBeenCalled();
+      expect(healthcheck).toHaveBeenCalled();
+      test.status = 0;
+      await irene.healthcheck();
+      expect(healthcheck).toHaveBeenCalledTimes(2);
+      expect(checkHealthy).toHaveBeenCalledTimes(2);
+
+      expect(irene.mood()).toBe('healthy');
+    });
+    it('First sick and then still sick', async () => {
+      const checkHealthy = jest.fn();
+      const checkSick = jest.fn();
+      const healthcheck = jest.fn();
+      const irene = new IreneKills();
+      irene.resource('jest1', {
+        healthy: async () => {
+          checkHealthy();
+          return { healthy: true, kill: false };
+        },
+        sick: async () => {
+          checkSick();
+          return { kill: false };
+        },
+        on: {
+          healthcheck: async () => {
+            healthcheck();
+            return { healthy: false, kill: false };
+          },
+        },
+      });
+      await irene.wakeUp();
+      expect(checkHealthy).toHaveBeenCalled();
+      await irene.healthcheck();
+      expect(checkSick).toHaveBeenCalled();
+      expect(healthcheck).toHaveBeenCalled();
+      await irene.healthcheck();
+      expect(healthcheck).toHaveBeenCalledTimes(2);
+
+      expect(irene.mood()).toBe('sick');
+    });
   });
   describe('Resource value tests', () => {
     it('Value will be available @ need', async () => {

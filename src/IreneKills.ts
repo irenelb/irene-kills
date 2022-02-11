@@ -290,7 +290,7 @@ export class IreneKills {
       ],
       health: [
         { current: 'healthy', success: 'healthy', failure: 'sick' },
-        { current: 'sick', success: 'sick', failure: 'Irene' },
+       // { current: 'sick', success: 'sick', failure: 'Irene' },
         { current: 'sick', success: 'healthy', failure: 'Irene' },
       ],
       sick: [
@@ -387,7 +387,11 @@ export class IreneKills {
         },
       );
 
-      if (!summary.healthy) await this.fsm.signal('sick');
+      if (!summary.healthy) {
+        await this.fsm.signal('sick');
+      } else {
+        this.fsm.signal('health');
+      }
       return summary;
     });
   }
