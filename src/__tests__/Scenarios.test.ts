@@ -50,7 +50,7 @@ describe('Irene Kills Common Scenarios', function () {
     const wakeUp = irene.wakeUp();
 
     await expect(wakeUp).resolves.toBeUndefined();
-    const hcPromise = irene.healtcheck();
+    const hcPromise = irene.healthcheck();
     await expect(hcPromise).resolves.toEqual(
       expect.objectContaining({ healthy: true }),
     );
