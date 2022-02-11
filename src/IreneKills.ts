@@ -148,7 +148,7 @@ export class IreneKills {
               _(this.resources)
                 .map(async (resource, name) => {
                   if (!resource.activate)
-                    return await {
+                    return {
                       name,
                       resource,
                       value: {
@@ -181,6 +181,7 @@ export class IreneKills {
               },
               { kill: false, healthy: true } as IreneKill & IreneHealthy,
             );
+
             if (kill) return { forwardTo: 'Irene' };
             if (!healthy) return { forwardTo: 'sick' };
           } catch (e) {
@@ -198,7 +199,7 @@ export class IreneKills {
               _(this.resources)
                 .map(async (resource, name) => {
                   if (!resource.healthy)
-                    return await {
+                    return {
                       name,
                       resource,
                       value: { kill: false, healthy: true },
@@ -390,7 +391,7 @@ export class IreneKills {
       if (!summary.healthy) {
         await this.fsm.signal('sick');
       } else {
-        this.fsm.signal('health');
+        await this.fsm.signal('health');
       }
       return summary;
     });
