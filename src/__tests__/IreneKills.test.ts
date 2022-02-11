@@ -282,7 +282,7 @@ describe('Irene Kills', function () {
       });
       await irene.wakeUp();
 
-      const healthReport = await irene.healtcheck();
+      const healthReport = await irene.healthcheck();
       expect(healthReport).toEqual(
         expect.objectContaining({
           healthy: true,
@@ -318,7 +318,7 @@ describe('Irene Kills', function () {
         });
       await irene.wakeUp();
 
-      const healthReport = await irene.healtcheck();
+      const healthReport = await irene.healthcheck();
       expect(healthReport).toEqual(
         expect.objectContaining({
           healthy: false,
@@ -373,7 +373,7 @@ describe('Irene Kills', function () {
       await irene.wakeUp();
 
       expect(checkMarkFn).not.toBeCalled();
-      const healthReport = await irene.healtcheck();
+      const healthReport = await irene.healthcheck();
       expect(checkMarkFn).toBeCalled();
       expect(healthReport).toEqual(
         expect.objectContaining({
@@ -410,7 +410,7 @@ describe('Irene Kills', function () {
       await irene.wakeUp();
 
       expect(checkMarkFn).not.toBeCalled();
-      const healthReport = await irene.healtcheck();
+      const healthReport = await irene.healthcheck();
       expect(checkMarkFn).toBeCalled();
       expect(healthReport).toEqual(
         expect.objectContaining({
@@ -460,7 +460,7 @@ describe('Irene Kills', function () {
       await irene.wakeUp();
 
       expect(checkMarkFn).not.toBeCalled();
-      const healthReport = await irene.healtcheck();
+      const healthReport = await irene.healthcheck();
       expect(checkMarkFn).toBeCalled();
       expect(healthReport).toEqual(
         expect.objectContaining({
@@ -500,7 +500,7 @@ describe('Irene Kills', function () {
       await irene.wakeUp();
 
       expect(checkMarkFn).not.toBeCalled();
-      await irene.healtcheck();
+      await irene.healthcheck();
       expect(checkMarkFn).not.toBeCalled();
       expect(irene.mood()).toEqual('healthy');
     });
@@ -629,7 +629,7 @@ describe('Irene Kills', function () {
       });
       await irene.wakeUp();
       expect(irene.mood()).toBe('healthy');
-      await expect(irene.healtcheck()).resolves.toEqual(
+      await expect(irene.healthcheck()).resolves.toEqual(
         expect.objectContaining({
           healthy: true,
           resources: { a: { healthy: true, msg: 'a test' } },
@@ -663,7 +663,7 @@ describe('Irene Kills', function () {
         });
       await irene.wakeUp();
       expect(irene.mood()).toBe('healthy');
-      await expect(irene.healtcheck()).resolves.toEqual(
+      await expect(irene.healthcheck()).resolves.toEqual(
         expect.objectContaining({
           healthy: true,
           resources: {
@@ -699,7 +699,7 @@ describe('Irene Kills', function () {
         });
       await irene.wakeUp();
       expect(irene.mood()).toBe('healthy');
-      await expect(irene.healtcheck()).resolves.toEqual(
+      await expect(irene.healthcheck()).resolves.toEqual(
         expect.objectContaining({
           healthy: false,
           resources: {
@@ -723,7 +723,7 @@ describe('Irene Kills', function () {
       });
       await irene.wakeUp();
       expect(irene.mood()).toBe('healthy');
-      await expect(irene.healtcheck()).resolves.toEqual(
+      await expect(irene.healthcheck()).resolves.toEqual(
         expect.objectContaining({
           healthy: true,
           resources: {
@@ -752,7 +752,7 @@ describe('Irene Kills', function () {
       });
       await irene.wakeUp();
       expect(irene.mood()).toBe('healthy');
-      await expect(irene.healtcheck()).resolves.toEqual(
+      await expect(irene.healthcheck()).resolves.toEqual(
         expect.objectContaining({
           healthy: false,
           resources: {
@@ -841,7 +841,7 @@ describe('Irene Kills', function () {
       });
       await irene.wakeUp();
       expect(irene.mood()).toBe('healthy');
-      await irene.healtcheck();
+      await irene.healthcheck();
       expect(checkValueFn).toHaveBeenNthCalledWith(1, { msg: 'test' });
       expect(checkValueFn).toHaveBeenNthCalledWith(2, { msg: 'test' });
     });

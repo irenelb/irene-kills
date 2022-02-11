@@ -337,7 +337,7 @@ export class IreneKills {
     }
     return timeout(opt?.timeout ?? null, () => this.fsm.signal('wakeup'));
   }
-  async healtcheck(opt?: { timeout: number | null }): Promise<{
+  async healthcheck(opt?: { timeout: number | null }): Promise<{
     healthy: boolean;
     resources: Record<string, IreneHealthy>;
     errors: Record<string, any>;
