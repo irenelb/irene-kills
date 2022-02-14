@@ -74,185 +74,291 @@ export class IreneKills {
     states: {
       initialize: {
         activate: async ({ current, signal }) => {
-          try {
-            const results = await Promise.all(
-              _(this.resources)
-                .map(async (resource, name) => {
-                  if (!resource.need)
-                    return await { name, resource, value: resource.value };
+          const arrayResources = _(this.resources)
+            .map((resource, name) => ({ name, resource }))
+            .value();
 
-                  return {
-                    name,
-                    resource,
-                    value: await resource.need({
-                      name,
-                      signal,
-                      value: resource.value,
-                    }),
-                  };
-                })
-                .value(),
-            );
+          const promises = _(arrayResources)
+            .map(async ({ resource, name }) => {
+              if (!resource.need)
+                return await { name, resource, value: resource.value };
 
-            results.map(({ resource, value }) => {
-              resource.value = value;
+              return {
+                name,
+                resource,
+                value: await resource.need({
+                  name,
+                  signal,
+                  value: resource.value,
+                }),
+              };
+            })
+            .value();
+
+          const results = await Promise.allSettled(promises);
+
+          const isRejected = checkIfRejected<Awaited<typeof promises[0]>>(
+            results,
+            arrayResources,
+          );
+
+          if (isRejected.length > 0) {
+            const errors = isRejected.map(({ promiseInfo, resource }) => ({
+              [resource]:
+                promiseInfo.status === 'rejected' && promiseInfo.reason,
+            }));
+            return { forwardTo: 'Irene', error: errors };
+          }
+
+          if (isRejected.length === 0) {
+            results.map((promiseInfo) => {
+              if (promiseInfo.status === 'fulfilled') {
+                const { value } = promiseInfo;
+                value.resource.value = value.value;
+              }
             });
             return { forwardTo: 'check', results };
-          } catch (e) {
-            /* handle error */
-            //throw e;
-            return { forwardTo: 'Irene', error: e };
           }
         },
       },
       check: {
         activate: async ({ signal }) => {
-          try {
-            const results = await Promise.all(
-              _(this.resources)
-                .map(async (resource, name) => {
-                  if (!resource.check)
-                    return await { name, resource, value: true };
+          const arrayResources = _(this.resources)
+            .map((resource, name) => ({ name, resource }))
+            .value();
 
-                  return {
-                    name,
-                    resource,
-                    value: await resource.check({
-                      name,
-                      value: resource.value,
-                      signal,
-                    }),
-                  };
-                })
-                .value(),
-            );
-            const ok = results.reduce((acc, { value }) => {
-              return acc && value;
-            }, true as boolean);
-            if (!ok) {
-              return { forwardTo: 'Irene' };
-            }
-          } catch (e) {
-            /* handle error */
-            //throw e;
-            return { forwardTo: 'Irene' };
+          const promises = _(arrayResources)
+            .map(async ({ resource, name }) => {
+              if (!resource.check) return await { name, resource, value: true };
+
+              return {
+                name,
+                resource,
+                value: await resource.check({
+                  name,
+                  value: resource.value,
+                  signal,
+                }),
+              };
+            })
+            .value();
+
+          const results = await Promise.allSettled(promises);
+          const isRejected = checkIfRejected<Awaited<typeof promises[0]>>(
+            results,
+            arrayResources,
+          );
+
+          if (isRejected.length > 0) {
+            const errors = isRejected.map(({ promiseInfo, resource }) => ({
+              [resource]:
+                promiseInfo.status === 'rejected' && promiseInfo.reason,
+            }));
+            return { forwardTo: 'Irene', error: errors };
           }
 
-          return { forwardTo: 'activate' };
+          if (isRejected.length === 0) {
+            const ok = results.reduce(
+              (acc, promiseInfo) => {
+                if (promiseInfo.status === 'fulfilled') {
+                  const { value } = promiseInfo;
+                  return {
+                    ...acc,
+                    state: acc.state && value.value,
+                    resources: [
+                      ...acc.resources,
+                      { [value.name]: { check: value.value } },
+                    ],
+                  };
+                }
+                return acc;
+              },
+              { state: true, resources: [] } as {
+                state: boolean;
+                resources: { [key: string]: { check: boolean } }[];
+              },
+            );
+            return !ok.state
+              ? { forwardTo: 'Irene', error: ok.resources }
+              : { forwardTo: 'activate' };
+          }
         },
       },
       activate: {
         activate: async ({ current, signal }) => {
-          try {
-            const results = await Promise.all(
-              _(this.resources)
-                .map(async (resource, name) => {
-                  if (!resource.activate)
-                    return {
-                      name,
-                      resource,
-                      value: {
-                        kill: false,
-                        healthy: true,
-                        reload: false,
-                        signal,
-                      },
-                    };
+          const arrayResources = _(this.resources)
+            .map((resource, name) => ({ name, resource }))
+            .value();
 
-                  return {
-                    name,
-                    resource,
-                    value: await resource.activate({
-                      name,
-                      value: resource.value,
-                      reload: false,
-                      signal,
-                    }),
-                  };
-                })
-                .value(),
-            );
-            const { kill, healthy } = results.reduce(
-              (acc, { value }) => {
+          const promises = _(arrayResources)
+            .map(async ({ resource, name }) => {
+              if (!resource.activate)
                 return {
-                  kill: acc.kill || value.kill,
-                  healthy: acc.healthy && (value.healthy ?? true),
+                  name,
+                  resource,
+                  value: {
+                    kill: false,
+                    healthy: true,
+                    reload: false,
+                    signal,
+                  },
                 };
+
+              return {
+                name,
+                resource,
+                value: await resource.activate({
+                  name,
+                  value: resource.value,
+                  reload: false,
+                  signal,
+                }),
+              };
+            })
+            .value();
+
+          const results = await Promise.allSettled(promises);
+
+          const isRejected = checkIfRejected<Awaited<typeof promises[0]>>(
+            results,
+            arrayResources,
+          );
+
+          if (isRejected.length > 0) {
+            const errors = isRejected.map(({ promiseInfo, resource }) => ({
+              [resource]:
+                promiseInfo.status === 'rejected' && promiseInfo.reason,
+            }));
+            return { forwardTo: 'Irene', error: errors };
+          }
+
+          if (isRejected.length === 0) {
+            const status = results.reduce(
+              (acc, promiseInfo) => {
+                if (promiseInfo.status === 'fulfilled') {
+                  const { value } = promiseInfo;
+                  return {
+                    state: {
+                      kill: acc.state.kill || value.value.kill,
+                      healthy:
+                        acc.state.healthy && (value.value.healthy ?? true),
+                    },
+                    resources: {
+                      ...acc.resources,
+                      [value.name]: {
+                        kill: value.value.kill,
+                        healthy: value.value.healthy ?? true,
+                      },
+                    },
+                  };
+                }
+                return acc;
               },
-              { kill: false, healthy: true } as IreneKill & IreneHealthy,
+              { state: { kill: false, healthy: true }, resources: {} } as {
+                state: IreneKill & IreneHealthy;
+                resources: Record<string, IreneKill & IreneHealthy>;
+              },
             );
 
-            if (kill) return { forwardTo: 'Irene' };
-            if (!healthy) return { forwardTo: 'sick' };
-          } catch (e) {
-            /* handle error */
-            //throw e;
-            return { forwardTo: 'Irene' };
+            if (status.state.kill) {
+              return { forwardTo: 'Irene', error: status.resources };
+            }
+            if (!status.state.healthy) {
+              return { forwardTo: 'sick', error: status.resources };
+            }
+            return { forwardTo: 'healthy' };
           }
-          return { forwardTo: 'healthy' };
         },
       },
       healthy: {
         activate: async ({ current, signal }) => {
-          try {
-            const results = await Promise.all(
-              _(this.resources)
-                .map(async (resource, name) => {
-                  if (!resource.healthy)
-                    return {
-                      name,
-                      resource,
-                      value: { kill: false, healthy: true },
-                    };
+          const arrayResources = _(this.resources)
+            .map((resource, name) => ({ name, resource }))
+            .value();
+          const promises = _(arrayResources)
+            .map(async ({ resource, name }) => {
+              if (!resource.healthy)
+                return {
+                  name,
+                  resource,
+                  value: { kill: false, healthy: true },
+                };
 
-                  return {
-                    name,
-                    resource,
-                    value: await resource.healthy({
-                      name,
-                      value: resource.value,
-                      signal,
-                    }),
-                  };
-                })
-                .value(),
-            );
-          } catch (e) {
-            /* handle error */
-            //throw e;
-            return { forwardTo: 'Irene' };
+              return {
+                name,
+                resource,
+                value: await resource.healthy({
+                  name,
+                  value: resource.value,
+                  signal,
+                }),
+              };
+            })
+            .value();
+
+          const results = await Promise.allSettled(promises);
+          const isRejected = checkIfRejected<Awaited<typeof promises[0]>>(
+            results,
+            arrayResources,
+          );
+
+          if (isRejected.length > 0) {
+            const errors = isRejected.map(({ promiseInfo, resource }) => ({
+              [resource]:
+                promiseInfo.status === 'rejected' && promiseInfo.reason,
+            }));
+            return { forwardTo: 'Irene', error: errors };
           }
         },
       },
       sick: {
         activate: async ({ current, signal }) => {
-          try {
-            const results = await Promise.all(
-              _(this.resources)
-                .map(async (resource, name) => {
-                  if (!resource.sick || typeof resource.sick === 'boolean')
-                    return await {
-                      name,
-                      resource,
-                      decision: { kill: false },
-                    };
+          const arrayResources = _(this.resources)
+            .map((resource, name) => ({ name, resource }))
+            .value();
+          const promises = _(arrayResources)
+            .map(async ({ resource, name }) => {
+              if (!resource.sick || typeof resource.sick === 'boolean')
+                return await {
+                  name,
+                  resource,
+                  decision: { kill: false },
+                };
 
-                  return {
-                    name,
-                    resource,
-                    decision: await resource.sick({
-                      name,
-                      value: resource.value,
-                    }),
-                  };
-                })
-                .value(),
-            );
+              return {
+                name,
+                resource,
+                decision: await resource.sick({
+                  name,
+                  value: resource.value,
+                }),
+              };
+            })
+            .value();
+
+          const results = await Promise.allSettled(promises);
+          const isRejected = checkIfRejected<Awaited<typeof promises[0]>>(
+            results,
+            arrayResources,
+          );
+
+          if (isRejected.length > 0) {
+            const errors = isRejected.map(({ promiseInfo, resource }) => ({
+              [resource]:
+                promiseInfo.status === 'rejected' && promiseInfo.reason,
+            }));
+            return { forwardTo: 'Irene', error: errors };
+          }
+          if (isRejected.length === 0) {
             const killDecision = results.reduce(
-              (acc, { name, resource, decision }) => {
-                acc.kill = acc.kill || decision.kill;
-                if (decision.kill)
-                  acc.killers.push({ name, value: resource.value });
+              (acc, promiseInfo) => {
+                if (promiseInfo.status === 'fulfilled') {
+                  const { name, resource, decision } = promiseInfo.value;
+                  acc.kill = acc.kill || decision.kill;
+                  if (decision.kill)
+                    acc.killers.push({ name, value: resource.value });
+                }
+
                 return acc;
               },
               {
@@ -263,11 +369,8 @@ export class IreneKills {
                 killers: { name: string; value: unknown }[];
               },
             );
-            if (killDecision.kill) return { forwardTo: 'Irene' };
-          } catch (e) {
-            /* handle error */
-            //throw e;
-            return { forwardTo: 'Irene' };
+            if (killDecision.kill)
+              return { forwardTo: 'Irene', error: killDecision.killers };
           }
         },
       },
@@ -291,7 +394,7 @@ export class IreneKills {
       ],
       health: [
         { current: 'healthy', success: 'healthy', failure: 'sick' },
-       // { current: 'sick', success: 'sick', failure: 'Irene' },
+        // { current: 'sick', success: 'sick', failure: 'Irene' },
         { current: 'sick', success: 'healthy', failure: 'Irene' },
       ],
       sick: [
@@ -411,4 +514,19 @@ function timeout<R, T extends () => Promise<R>>(
       }, ms);
     }) as never,
   ]);
+}
+
+function checkIfRejected<T>(
+  results: PromiseSettledResult<T>[],
+  arrayResources: {
+    name: string;
+    resource: IreneResource<any>;
+  }[],
+) {
+  return results
+    .map((promiseInfo, index) => ({
+      promiseInfo,
+      resource: arrayResources[index].name,
+    }))
+    .filter(({ promiseInfo }) => promiseInfo.status === 'rejected');
 }

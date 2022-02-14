@@ -42,6 +42,7 @@ export class FSAManager<States extends string> {
     {
       activate: (params: { current: States | 0; signal: Signals }) => Promise<{
         forwardTo?: States;
+        error?: unknown;
       } | void>;
     }
   >;
@@ -65,6 +66,7 @@ export class FSAManager<States extends string> {
           signal: Signals;
         }) => Promise<{
           forwardTo?: States;
+          error?: unknown;
         } | void>;
       }
     >;
@@ -158,6 +160,12 @@ export class FSAManager<States extends string> {
     );
     this.isTransitionAllowed({ signal, current, to });
     const activation = await this.states[to].activate({ current, signal });
+    if (activation?.error) {
+      this.logger.error(
+        activation.error,
+        `Error in Transition: ${current} -> ${to}`,
+      );
+    }
     this._state.current = to;
     this.events.emit(to, { current, to, signal });
     if (activation?.forwardTo) {
